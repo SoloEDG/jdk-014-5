@@ -16,6 +16,8 @@ import { ChapterPanel } from "../features/chapters";
 import { ReaderStage, PanelStrip } from "../features/reader";
 import { AudioPanel } from "../features/audio";
 import { ProgressPanel } from "../features/progress";
+import { EditPanel } from "../features/editing";
+import { SyncPanel, MergeDialog } from "../features/sync";
 import { useWorkspace } from "./workspace";
 const {
   doc,
@@ -24,6 +26,9 @@ const {
   library: l,
   chapters: c,
   audio: a,
+  editing: e,
+  sync: s,
+  resetLibrary,
 } = useWorkspace();
 const current = r.current,
   at = r.location,
@@ -90,7 +95,17 @@ function focus(id: string) {
           :busy="l.busy.value"
           :message="l.message.value"
           @import="l.importFiles"
-          @reset="l.reset"
+          @reset="resetLibrary"
+        /><SyncPanel
+          :busy="s.busy.value"
+          :status="s.status.value"
+          :can-undo="s.canUndo.value"
+          :save-failed="s.saveFailed.value"
+          @export="s.exportWork"
+          @import="s.importWork"
+          @undo="s.undo"
+          @download="s.downloadCurrent"
+          @demo="s.demoBranch"
         />
         <div class="sidebar-footer">
           <PanelLeftClose :size="14" /> 你的私人漫画放映室 <span>v1.0</span>
@@ -165,6 +180,15 @@ function focus(id: string) {
           @toggle="a.toggle"
           @volume="a.volume.value = $event"
           @dialogue="a.dialogue.value = !a.dialogue.value"
+        /><EditPanel
+          :page="current.page"
+          :panel="current.panel"
+          :message="e.message.value"
+          @move="e.move"
+          @duplicate="e.duplicate"
+          @remove="e.remove"
+          @replace-image="e.replaceImage"
+          @save="e.savePanel"
         /><ProgressPanel
           :bookmarks="bookmarks"
           :percent="metrics.percent"
@@ -186,5 +210,18 @@ function focus(id: string) {
       ><span>PANEL · 为每一格想象而生</span
       ><span>图片导入 · 本地存储 · 无需联网</span>
     </footer>
+    <MergeDialog
+      v-if="s.plan.value"
+      :groups="s.groups.value"
+      :decisions="s.decisions"
+      :cost-text="s.costText.value"
+      :warnings="[...s.plan.value.warnings, ...(s.preview.value?.warnings ?? [])]"
+      :unresolved="s.unresolved.value"
+      @decide="s.decide"
+      @decide-group="s.decideGroup"
+      @decide-all="s.decideAll"
+      @apply="s.apply"
+      @cancel="s.cancel"
+    />
   </div>
 </template>

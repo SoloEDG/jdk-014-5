@@ -32,11 +32,16 @@ export function readSession(): SavedSession | null {
     return null;
   }
 }
-export function writeSession(value: SavedSession): string {
+export function tryWriteSession(value: SavedSession): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify(value));
-    return "已保存到此浏览器";
+    return true;
   } catch {
-    return "存储空间不足，本次修改仅保留在当前页面；请减少导入图片";
+    return false;
   }
+}
+export function writeSession(value: SavedSession): string {
+  return tryWriteSession(value)
+    ? "已保存到此浏览器"
+    : "存储空间不足，本次修改仅保留在当前页面；请减少导入图片";
 }
